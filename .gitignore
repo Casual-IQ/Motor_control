@@ -1,0 +1,6 @@
+.vscode
+Drivers/
+Middlewares/
+**/MDK-ARM/**
+!Robot.uvprojx
+!startup_stm32f407xx.s
