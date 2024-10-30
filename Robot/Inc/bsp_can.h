@@ -15,6 +15,6 @@ typedef struct
 } moto_info_t;
 
 void CAN_Filter_Init(void);
-void set_GM6020_motor_voltage(CAN_HandleTypeDef* hcan,int16_t v1);
+void set_GM6020_motor_voltage(CAN_HandleTypeDef* hcan, int16_t v1, int16_t v2);
 
 #endif

@@ -2,11 +2,13 @@
 #include "main.h"
 
 #define CAN_6020_M1_ID 0x206
+#define CAN_6020_M2_ID 0x207
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
 
-moto_info_t motor_info;
+moto_info_t motor_info1;
+moto_info_t motor_info2;
 uint16_t can_cnt;
 
 #define get_motor_measure(ptr, data)                                    \
@@ -60,10 +62,15 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     {
         case CAN_6020_M1_ID:
         {
-            get_motor_measure(&motor_info, rx_data);
+            get_motor_measure(&motor_info1, rx_data);
             break;
         }
 
+        case CAN_6020_M2_ID:
+        {
+            get_motor_measure(&motor_info2, rx_data);
+            break;
+        }
         default:
         {
             break;
@@ -75,10 +82,11 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
  * @brief Set GM6020 motor voltage
  * @param hcan: CAN handle
  * @param v1: motor voltage
+ * @param v2: motor voltage
  * @retval none
  */
 
-void set_GM6020_motor_voltage(CAN_HandleTypeDef* hcan, int16_t v1)
+void set_GM6020_motor_voltage(CAN_HandleTypeDef* hcan, int16_t v1, int16_t v2)
 {
     CAN_TxHeaderTypeDef tx_header;
     uint8_t tx_data[8] = {0};
@@ -88,10 +96,10 @@ void set_GM6020_motor_voltage(CAN_HandleTypeDef* hcan, int16_t v1)
     tx_header.RTR   = CAN_RTR_DATA;
     tx_header.DLC   = 0x08;
 
-    tx_data[0] = 0x00;
-    tx_data[1] = 0x00;
-    tx_data[2] = (v1>>8);
-    tx_data[3] = (v1);
+    tx_data[0] = (uint8_t)(v1 >> 8);
+    tx_data[1] = (uint8_t)v1;
+    tx_data[2] = (uint8_t)(v2 >> 8);
+    tx_data[3] = (uint8_t)v2;
 
     HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,(uint32_t*)CAN_TX_MAILBOX0);
 }
