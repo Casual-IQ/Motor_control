@@ -1,7 +1,7 @@
 #include "motor_task.h"
 #include "remote_control.h"
 
-float target_yaw_angle = 0, target_pitch_angle = 0;
+float target_yaw_angle = 0, target_pitch_angle = 2.6;
 float now_yaw_angle, now_pitch_angle;
 extern moto_info_t motor_info1;
 extern moto_info_t motor_info2;
@@ -12,8 +12,8 @@ extern pid_struct_t motor2_angle_pid;
 
 const RC_ctrl_t *rc_ctrl_motor;
 
-float yaw_sensitivity = 0.0001f;
-float pitch_sensitivity = 0.0001f; 
+float yaw_sensitivity = 0.00001f;
+float pitch_sensitivity = 0.00001f; 
 float yaw_min_angle = -PI;
 float yaw_max_angle = PI;
 float pitch_min_angle = -PI;
@@ -42,6 +42,7 @@ void motor_task(void const * argument){
         now_pitch_angle = msp(motor_info2.rotor_angle, 0, 8191, -PI, PI);
 
          // 根据遥控器数据设定目标偏航角和俯仰角
+				
         target_yaw_angle += -(float)rc_ctrl_motor->rc.ch[0] * yaw_sensitivity;
         target_pitch_angle += -(float)rc_ctrl_motor->rc.ch[1] * pitch_sensitivity;
 
@@ -70,6 +71,6 @@ void motor_task(void const * argument){
         // 设置两个电机的电压
         set_GM6020_motor_voltage(&hcan1, motor1_speed_pid.output, motor2_speed_pid.output);
 
-        osDelay(40);
+        osDelay(10);
     }
 }
