@@ -1,8 +1,8 @@
 #include "bsp_can.h"
 #include "main.h"
 
-#define CAN_6020_M1_ID 0x206
-#define CAN_6020_M2_ID 0x207
+#define CAN_6020_M1_ID 0x205
+#define CAN_6020_M2_ID 0x206
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
@@ -81,8 +81,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 /**
  * @brief Set GM6020 motor voltage
  * @param hcan: CAN handle
- * @param v1: motor voltage
- * @param v2: motor voltage
+ * @param v1: yaw motor voltage
+ * @param v2: pitch motor voltage
  * @retval none
  */
 

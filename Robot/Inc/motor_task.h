@@ -17,6 +17,7 @@
  * @param argument: NULL
  * @retval None
  */
+void motor_init(void);
 extern void motor_task(void const * argument);
 double msp(double x, double in_min, double in_max, double out_min, double out_max);
 
