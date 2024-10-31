@@ -9,15 +9,15 @@ extern moto_info_t motor2_info;
 extern pid_struct_t motor2_speed_pid;
 extern pid_struct_t motor2_angle_pid;
 
-float yaw_sensitivity = 0.0001f;
-float pitch_sensitivity = 0.0001f; 
-float yaw_min_angle = -PI;
-float yaw_max_angle = PI;
-float pitch_min_angle = 1.95f;
-float pitch_max_angle = 2.90f;
-float recenter_threshold = 0.01f;
-float yaw_init_angle = 0.0f;
-float pitch_init_angle = 2.6f;
+const float yaw_sensitivity = 0.0001f;
+const float pitch_sensitivity = 0.0001f; 
+const float yaw_min_angle = -PI;
+const float yaw_max_angle = PI;
+const float pitch_min_angle = 1.95f;
+const float pitch_max_angle = 2.90f;
+const float recenter_threshold = 0.01f;
+const float yaw_init_angle = 0.0f;
+const float pitch_init_angle = 2.6f;
 
 const RC_ctrl_t *rc_ctrl_motor;
 
