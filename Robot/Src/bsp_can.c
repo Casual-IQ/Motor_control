@@ -7,8 +7,8 @@
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
 
-moto_info_t motor_info1;
-moto_info_t motor_info2;
+moto_info_t motor1_info;
+moto_info_t motor2_info;
 uint16_t can_cnt;
 
 #define get_motor_measure(ptr, data)                                    \
@@ -62,13 +62,13 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     {
         case CAN_6020_M1_ID:
         {
-            get_motor_measure(&motor_info1, rx_data);
+            get_motor_measure(&motor1_info, rx_data);
             break;
         }
 
         case CAN_6020_M2_ID:
         {
-            get_motor_measure(&motor_info2, rx_data);
+            get_motor_measure(&motor2_info, rx_data);
             break;
         }
         default:
