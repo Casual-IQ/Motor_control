@@ -12,12 +12,12 @@ extern pid_struct_t motor2_angle_pid;
 
 const RC_ctrl_t *rc_ctrl_motor;
 
-float yaw_sensitivity = 0.00001f;
-float pitch_sensitivity = 0.00001f; 
+float yaw_sensitivity = 0.0001f;
+float pitch_sensitivity = 0.0001f; 
 float yaw_min_angle = -PI;
 float yaw_max_angle = PI;
-float pitch_min_angle = -PI;
-float pitch_max_angle = PI;
+float pitch_min_angle = 1.95f;
+float pitch_max_angle = 2.90f;
 
 /**
  * @brief Motor task
@@ -41,25 +41,37 @@ void motor_task(void const * argument){
         now_yaw_angle = msp(motor_info1.rotor_angle, 0, 8191, -PI, PI);
         now_pitch_angle = msp(motor_info2.rotor_angle, 0, 8191, -PI, PI);
 
-         // 根据遥控器数据设定目标偏航角和俯仰角
-				
+        // 根据遥控器数据设定yaw和pitch的目标角度
         target_yaw_angle += -(float)rc_ctrl_motor->rc.ch[0] * yaw_sensitivity;
         target_pitch_angle += -(float)rc_ctrl_motor->rc.ch[1] * pitch_sensitivity;
 
-        // 对目标偏航角进行限幅
-        if (target_yaw_angle < yaw_min_angle)
-            target_yaw_angle = yaw_min_angle;
-        if (target_yaw_angle > yaw_max_angle)
-            target_yaw_angle = yaw_max_angle;
+        // // 对yaw限幅
+        // if (target_yaw_angle < yaw_min_angle)
+        //     target_yaw_angle = yaw_min_angle;
+        // if (target_yaw_angle > yaw_max_angle)
+        //     target_yaw_angle = yaw_max_angle;
 
-        // 对目标俯仰角进行限幅
+        // 对yaw进行连续性处理
+        if (target_yaw_angle < -PI)
+            target_yaw_angle += 2 * PI;
+        if (target_yaw_angle > PI)
+            target_yaw_angle -= 2 * PI;
+
+        // yaw优弧劣弧处理
+        float yaw_err = target_yaw_angle - now_yaw_angle;
+        if (yaw_err > PI)
+            yaw_err -= 2 * PI;
+        if (yaw_err < -PI)
+            yaw_err += 2 * PI;
+        
+        // 对pitch限幅
         if (target_pitch_angle < pitch_min_angle)
             target_pitch_angle = pitch_min_angle;
         if (target_pitch_angle > pitch_max_angle)
             target_pitch_angle = pitch_max_angle;
 
         // 电机 1 的角度环 PID 计算
-        pid_calc(&motor1_angle_pid, target_yaw_angle, now_yaw_angle);
+        pid_calc(&motor1_angle_pid, yaw_err, 0.0);
         // 电机 1 的速度环 PID 计算
         pid_calc(&motor1_speed_pid, motor1_angle_pid.output, motor_info1.rotor_speed);
 
