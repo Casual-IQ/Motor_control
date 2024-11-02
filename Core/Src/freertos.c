@@ -49,6 +49,7 @@
 /* USER CODE END Variables */
 osThreadId LED_TaskHandle;
 osThreadId Motor_TaskHandle;
+osThreadId EKF_TaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -57,6 +58,7 @@ osThreadId Motor_TaskHandle;
 
 void led_task(void const * argument);
 void motor_task(void const * argument);
+void EKF(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -104,12 +106,16 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of LED_Task */
-  osThreadDef(LED_Task, led_task, osPriorityNormal, 0, 128);
+  osThreadDef(LED_Task, led_task, osPriorityIdle, 0, 128);
   LED_TaskHandle = osThreadCreate(osThread(LED_Task), NULL);
 
   /* definition and creation of Motor_Task */
-  osThreadDef(Motor_Task, motor_task, osPriorityIdle, 0, 128);
+  osThreadDef(Motor_Task, motor_task, osPriorityNormal, 0, 128);
   Motor_TaskHandle = osThreadCreate(osThread(Motor_Task), NULL);
+
+  /* definition and creation of EKF_Task */
+  osThreadDef(EKF_Task, EKF, osPriorityNormal, 0, 128);
+  EKF_TaskHandle = osThreadCreate(osThread(EKF_Task), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -151,6 +157,24 @@ __weak void motor_task(void const * argument)
     osDelay(1);
   }
   /* USER CODE END motor_task */
+}
+
+/* USER CODE BEGIN Header_EKF */
+/**
+* @brief Function implementing the EKF_Task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_EKF */
+__weak void EKF(void const * argument)
+{
+  /* USER CODE BEGIN EKF */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END EKF */
 }
 
 /* Private application code --------------------------------------------------*/
