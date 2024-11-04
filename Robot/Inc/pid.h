@@ -22,7 +22,7 @@ typedef struct _pid_struct_t
   float i_out;//积分输出
   float d_out;//微分输出
   float output;//pid总输出
-}pid_struct_t;
+} pid_struct_t;
  
 void pid_init(pid_struct_t *pid,
               float kp,

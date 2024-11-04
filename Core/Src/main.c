@@ -23,6 +23,7 @@
 #include "dma.h"
 #include "i2c.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -30,6 +31,9 @@
 /* USER CODE BEGIN Includes */
 #include "bsp_can.h"  
 #include "remote_control.h"
+#include "BMI088driver.h"
+#include "bsp_dwt.h"
+#include "kalman_filter.h"
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -102,9 +106,13 @@ int main(void)
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   MX_I2C3_Init();
+  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
   CAN_Filter_Init();
   remote_control_init();
+  DWT_Init(168);
+  // while (BMI088_init(&hspi1, 1) != BMI088_NO_ERROR);
+  
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */

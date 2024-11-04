@@ -1,8 +1,10 @@
 #ifndef BMI088DRIVER_H
 #define BMI088DRIVER_H
 
-#include "struct_typedef.h"
+#include "stdint.h"
 #include "main.h"
+#include "FreeRTOS.h"
+#include "cmsis_os.h"
 
 #define BMI088_TEMP_FACTOR 0.125f
 #define BMI088_TEMP_OFFSET 23.0f
@@ -17,27 +19,13 @@
 #define BMI088_LONG_DELAY_TIME 80
 #define BMI088_COM_WAIT_SENSOR_TIME 150
 
-
 #define BMI088_ACCEL_IIC_ADDRESSE (0x18 << 1)
 #define BMI088_GYRO_IIC_ADDRESSE (0x68 << 1)
-
-#define BMI088_ACCEL_RANGE_3G
-//#define BMI088_ACCEL_RANGE_6G
-//#define BMI088_ACCEL_RANGE_12G
-//#define BMI088_ACCEL_RANGE_24G
-
-#define BMI088_GYRO_RANGE_2000
-//#define BMI088_GYRO_RANGE_1000
-//#define BMI088_GYRO_RANGE_500
-//#define BMI088_GYRO_RANGE_250
-//#define BMI088_GYRO_RANGE_125
-
 
 #define BMI088_ACCEL_3G_SEN 0.0008974358974f
 #define BMI088_ACCEL_6G_SEN 0.00179443359375f
 #define BMI088_ACCEL_12G_SEN 0.0035888671875f
 #define BMI088_ACCEL_24G_SEN 0.007177734375f
-
 
 #define BMI088_GYRO_2000_SEN 0.00106526443603169529841533860381f
 #define BMI088_GYRO_1000_SEN 0.00053263221801584764920766930190693f
@@ -45,24 +33,48 @@
 #define BMI088_GYRO_250_SEN 0.00013315805450396191230191732547673f
 #define BMI088_GYRO_125_SEN 0.000066579027251980956150958662738366f
 
+// ���ֶ��޸�
+#if INFANTRY_ID == 0
+#define GxOFFSET 0.00247530174f
+#define GyOFFSET 0.000393082853f
+#define GzOFFSET 0.000393082853f
+#define gNORM 9.69293118f
+#elif INFANTRY_ID == 1
+#define GxOFFSET 0.0007222f
+#define GyOFFSET -0.001786f
+#define GzOFFSET 0.0004346f
+#define gNORM 9.876785f
+#elif INFANTRY_ID == 2
+#define GxOFFSET 0.0007222f
+#define GyOFFSET -0.001786f
+#define GzOFFSET 0.0004346f
+#define gNORM 9.876785f
+#elif INFANTRY_ID == 3
+#define GxOFFSET 0.00270364084f
+#define GyOFFSET -0.000532632112f
+#define GzOFFSET 0.00478090625f
+#define gNORM 9.73574924f
+#elif INFANTRY_ID == 4
+#define GxOFFSET 0.0007222f
+#define GyOFFSET -0.001786f
+#define GzOFFSET 0.0004346f
+#define gNORM 9.876785f
+#endif
 
-typedef __packed struct BMI088_RAW_DATA
+typedef struct
 {
-    uint8_t status;
-    int16_t accel[3];
-    int16_t temp;
-    int16_t gyro[3];
-} bmi088_raw_data_t;
+    float Accel[3];
 
-typedef struct BMI088_REAL_DATA
-{
-    uint8_t status;
-    fp32 accel[3];
-    fp32 temp;
-    fp32 gyro[3];
-    fp32 time;
-} bmi088_real_data_t;
+    float Gyro[3];
 
+    float TempWhenCali;
+    float Temperature;
+
+    float AccelScale;
+    float GyroOffset[3];
+
+    float gNorm;
+} IMU_Data_t;
 
 enum
 {
@@ -86,16 +98,13 @@ enum
     BMI088_NO_SENSOR = 0xFF,
 };
 
+void BMI088_Init(SPI_HandleTypeDef *bmi088_SPI, uint8_t calibrate);
+extern uint8_t BMI088_init(SPI_HandleTypeDef *bmi088_SPI, uint8_t calibrate);
+extern uint8_t bmi088_accel_init(void);
+extern uint8_t bmi088_gyro_init(void);
 
+extern IMU_Data_t BMI088;
 
-
-
-extern uint8_t BMI088_init(void);
-extern bool_t bmi088_accel_init(void);
-extern bool_t bmi088_gyro_init(void);
-
-extern void BMI088_read(fp32 gyro[3], fp32 accel[3], fp32 *temperate);
-
-
+extern void BMI088_Read(IMU_Data_t *bmi088);
 
 #endif

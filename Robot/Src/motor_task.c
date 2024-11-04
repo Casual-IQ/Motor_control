@@ -1,5 +1,7 @@
 #include "motor_task.h"
 #include "remote_control.h"
+#include "imu_task.h"
+#include <stdbool.h>
 #include <stdlib.h> 
 
 extern moto_info_t motor1_info;
@@ -8,13 +10,15 @@ extern pid_struct_t motor1_angle_pid;
 extern moto_info_t motor2_info;
 extern pid_struct_t motor2_speed_pid;
 extern pid_struct_t motor2_angle_pid;
+extern INS_t INS;
+extern bool IMU_Ready;
 
 const float yaw_sensitivity = 0.0001f;
 const float pitch_sensitivity = 0.0001f; 
 const float yaw_min_angle = -PI;
 const float yaw_max_angle = PI;
-const float pitch_min_angle = 1.95f;
-const float pitch_max_angle = 2.90f;
+const float pitch_min_angle = 2.0f;
+const float pitch_max_angle = 2.8f;
 const float recenter_threshold = 0.01f;
 const float yaw_init_angle = 0.0f;
 const float pitch_init_angle = 2.6f;
@@ -23,7 +27,7 @@ const RC_ctrl_t *rc_ctrl_motor;
 
 float target_yaw_angle, target_pitch_angle;
 float now_yaw_angle, now_pitch_angle;
-float yaw_err;
+float yaw_err, pitch_err;
 Gimbal_Mode gimbal_mode;
 
 /**
@@ -36,13 +40,24 @@ double msp(double x, double in_min, double in_max, double out_min, double out_ma
 	return (x-in_min)*(out_max-out_min)/(in_max-in_min)+out_min;
 }
 
-void motor_init(void){
-    target_yaw_angle = yaw_init_angle;
-    target_pitch_angle = pitch_init_angle;
+/**
+ * @brief 将角度从 -180 到 180 映射到弧度 -PI 到 PI
+ * @param degrees 输入的角度（度数）
+ * @return 映射后的角度（弧度）
+ */
+float degrees_to_radians(float degrees)
+{
+    return degrees * (PI / 180.0f);
+}
 
+void motor_init(void){
+    while(!IMU_Ready);
+
+    target_yaw_angle = yaw_init_angle + degrees_to_radians(INS.Yaw);
+    target_pitch_angle = pitch_init_angle;
     gimbal_mode = Gimbal_No_Force;
     rc_ctrl_motor = get_remote_control_point();
-    gimbal_PID_init(); // 初始化 PID 参数
+    gimbal_PID_init(); 
 }
 
 void mode_set(void){
@@ -81,8 +96,7 @@ void gimble_control(void){
             motor2_speed_pid.output = 0;
             break;
         case(Recenter_Yaw):
-            target_yaw_angle = yaw_init_angle;
-            yaw_err = target_yaw_angle - now_yaw_angle;
+            yaw_err = yaw_init_angle - degrees_to_radians(INS.Yaw);
             if (yaw_err > PI)
                 yaw_err -= 2 * PI;
             if (yaw_err < -PI)
@@ -99,7 +113,7 @@ void gimble_control(void){
             // 根据遥控器数据设定yaw和pitch的目标角度
             target_yaw_angle += -(float)rc_ctrl_motor->rc.ch[0] * yaw_sensitivity;
             target_pitch_angle += -(float)rc_ctrl_motor->rc.ch[1] * pitch_sensitivity;
-
+            
             // 对yaw进行连续性处理
             if (target_yaw_angle < -PI)
                 target_yaw_angle += 2 * PI;
@@ -107,13 +121,12 @@ void gimble_control(void){
                 target_yaw_angle -= 2 * PI;
 
             // yaw优弧劣弧处理
-            yaw_err = target_yaw_angle - now_yaw_angle;
+            yaw_err = target_yaw_angle - degrees_to_radians(INS.Yaw);
             if (yaw_err > PI)
                 yaw_err -= 2 * PI;
             if (yaw_err < -PI)
                 yaw_err += 2 * PI;
             
-            // 对pitch限幅
             if (target_pitch_angle < pitch_min_angle)
                 target_pitch_angle = pitch_min_angle;
             if (target_pitch_angle > pitch_max_angle)
@@ -123,7 +136,9 @@ void gimble_control(void){
             pid_calc(&motor1_speed_pid, motor1_angle_pid.output, motor1_info.rotor_speed);
             pid_calc(&motor2_angle_pid, target_pitch_angle, now_pitch_angle);
             pid_calc(&motor2_speed_pid, motor2_angle_pid.output, motor2_info.rotor_speed);
-
+            break;
+        default:
+            break;
     }
 }
 
@@ -136,7 +151,6 @@ void motor_task(void const * argument){
         mode_set();
         gimble_control();
         set_GM6020_motor_voltage(&hcan1, motor1_speed_pid.output, motor2_speed_pid.output);
-
-        osDelay(10);
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }

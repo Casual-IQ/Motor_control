@@ -1,26 +1,30 @@
-#ifndef IMU_TASK_H
-#define IMU_TASK_H
+/**
+ ******************************************************************************
+ * @file    ins_task.h
+ * @author  Wang Hongxi
+ * @version V2.0.0
+ * @date    2022/2/23
+ * @brief
+ ******************************************************************************
+ * @attention
+ *
+ ******************************************************************************
+ */
+#ifndef __INS_TASK_H
+#define __INS_TASK_H
 
 #include "stdint.h"
-#include "cmsis_os.h"
+#include "BMI088driver.h"
 #include "QuaternionEKF.h"
+#include "FreeRTOS.h"
+#include "cmsis_os.h"
+
 
 #define X 0
 #define Y 1
 #define Z 2
 
 #define INS_TASK_PERIOD 1
-
-typedef struct
-{
-    uint8_t flag;
-
-    float scale[3];
-
-    float Yaw;
-    float Pitch;
-    float Roll;
-} IMU_Param_t;
 
 typedef struct
 {
@@ -48,6 +52,32 @@ typedef struct
     float YawTotalAngle;
 } INS_t;
 
-void EKF(void const * argument);
+
+/**
+ * @brief 用于修正安装误差的参数,demo中可无视
+ * 
+ */
+typedef struct
+{
+    uint8_t flag;
+
+    float scale[3];
+
+    float Yaw;
+    float Pitch;
+    float Roll;
+} IMU_Param_t;
+
+extern INS_t INS;
+
+void INS_Init(void);
+void INS_task(void);
+void IMU_Temperature_Ctrl(void);
+
+void QuaternionUpdate(float *q, float gx, float gy, float gz, float dt);
+void QuaternionToEularAngle(float *q, float *Yaw, float *Pitch, float *Roll);
+void EularAngleToQuaternion(float Yaw, float Pitch, float Roll, float *q);
+void BodyFrameToEarthFrame(const float *vecBF, float *vecEF, float *q);
+void EarthFrameToBodyFrame(const float *vecEF, float *vecBF, float *q);
 
 #endif
